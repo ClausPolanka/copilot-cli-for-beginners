@@ -266,5 +266,88 @@ class BookCollectionTest {
 
         assertEquals(0, results.size)
     }
+
+    @Test
+    fun `search with title query should return matching books`() {
+        collection.addBook("1984", "George Orwell", 1949)
+        collection.addBook("Dune", "Frank Herbert", 1965)
+        collection.addBook("The Dune Messiah", "Frank Herbert", 1969)
+
+        val results = collection.search(titleQuery = "dune")
+
+        assertEquals(2, results.size)
+        assertTrue(results.any { it.title == "Dune" })
+        assertTrue(results.any { it.title == "The Dune Messiah" })
+    }
+
+    @Test
+    fun `search with author query should return matching books`() {
+        collection.addBook("1984", "George Orwell", 1949)
+        collection.addBook("Animal Farm", "George Orwell", 1945)
+        collection.addBook("Dune", "Frank Herbert", 1965)
+
+        val results = collection.search(authorQuery = "orwell")
+
+        assertEquals(2, results.size)
+        assertTrue(results.all { it.author == "George Orwell" })
+    }
+
+    @Test
+    fun `search with year range should return books in range`() {
+        collection.addBook("1984", "George Orwell", 1949)
+        collection.addBook("Dune", "Frank Herbert", 1965)
+        collection.addBook("Neuromancer", "William Gibson", 1984)
+
+        val results = collection.search(yearFrom = 1950, yearTo = 1985)
+
+        assertEquals(2, results.size)
+        assertTrue(results.any { it.title == "Dune" })
+        assertTrue(results.any { it.title == "Neuromancer" })
+    }
+
+    @Test
+    fun `search with read status should filter correctly`() {
+        collection.addBook("1984", "George Orwell", 1949)
+        collection.addBook("Dune", "Frank Herbert", 1965)
+        collection.markAsRead("Dune")
+
+        val readBooks = collection.search(read = true)
+        val unreadBooks = collection.search(read = false)
+
+        assertEquals(1, readBooks.size)
+        assertEquals("Dune", readBooks[0].title)
+        assertEquals(1, unreadBooks.size)
+        assertEquals("1984", unreadBooks[0].title)
+    }
+
+    @Test
+    fun `search with combined criteria should apply all filters`() {
+        collection.addBook("1984", "George Orwell", 1949)
+        collection.addBook("Dune", "Frank Herbert", 1965)
+        collection.addBook("Dune Messiah", "Frank Herbert", 1969)
+        collection.markAsRead("Dune")
+
+        val results = collection.search(
+            titleQuery = "dune",
+            authorQuery = "herbert",
+            yearFrom = 1960,
+            yearTo = 1970,
+            read = true
+        )
+
+        assertEquals(1, results.size)
+        assertEquals("Dune", results[0].title)
+    }
+
+    @Test
+    fun `search with no criteria should return all books`() {
+        collection.addBook("1984", "George Orwell", 1949)
+        collection.addBook("Dune", "Frank Herbert", 1965)
+        collection.addBook("Neuromancer", "William Gibson", 1984)
+
+        val results = collection.search()
+
+        assertEquals(3, results.size)
+    }
 }
 
