@@ -15,6 +15,7 @@ dist/
 # Build outputs
 build/
 out/
+.gradle/
 *.log
 .playwright-mcp/
 .ai-repo-adventures/
