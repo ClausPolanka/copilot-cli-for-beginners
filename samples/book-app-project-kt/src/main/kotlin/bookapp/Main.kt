@@ -128,6 +128,43 @@ fun handleRead(collection: BookCollection) {
     }
 }
 
+fun handleSearch(collection: BookCollection) {
+    println("\nSearch and Filter Books\n")
+
+    print("Title (or press Enter to skip): ")
+    val title = readlnOrNull()?.trim()?.takeIf { it.isNotEmpty() }
+
+    print("Author (or press Enter to skip): ")
+    val author = readlnOrNull()?.trim()?.takeIf { it.isNotEmpty() }
+
+    print("Year from (or press Enter to skip): ")
+    val yearFromStr = readlnOrNull()?.trim()
+    val yearFrom = yearFromStr?.toIntOrNull()
+
+    print("Year to (or press Enter to skip): ")
+    val yearToStr = readlnOrNull()?.trim()
+    val yearTo = yearToStr?.toIntOrNull()
+
+    print("Read status (read/unread or press Enter to skip): ")
+    val readStatus = readlnOrNull()?.trim()?.lowercase()
+    val read = when (readStatus) {
+        "read" -> true
+        "unread" -> false
+        else -> null
+    }
+
+    val results = collection.search(
+        titleQuery = title,
+        authorQuery = author,
+        yearFrom = yearFrom,
+        yearTo = yearTo,
+        read = read
+    )
+
+    println()
+    showBooks(results)
+}
+
 fun showHelp() {
     println(
         """
@@ -145,6 +182,7 @@ fun showHelp() {
       read                           - Mark a book as read
       remove                         - Remove a book by title
       find                           - Find books by author
+      search                         - Search and filter books interactively
       help                           - Show this help message
       
     Examples:
@@ -169,6 +207,7 @@ fun main(args: Array<String>) {
         "read"   -> handleRead(collection)
         "remove" -> handleRemove(collection)
         "find"   -> handleFind(collection)
+        "search" -> handleSearch(collection)
         "help"   -> showHelp()
         else     -> {
             println("Unknown command.\n")

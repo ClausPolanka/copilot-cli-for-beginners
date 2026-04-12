@@ -99,4 +99,24 @@ class BookCollection(dataFile: String? = null) {
             newestBook = bookList.maxByOrNull { it.year }
         )
     }
+
+    fun search(
+        titleQuery: String? = null,
+        authorQuery: String? = null,
+        yearFrom: Int? = null,
+        yearTo: Int? = null,
+        read: Boolean? = null
+    ): List<Book> {
+        return books.filter { book ->
+            val matchesTitle = titleQuery == null || 
+                book.title.contains(titleQuery, ignoreCase = true)
+            val matchesAuthor = authorQuery == null || 
+                book.author.contains(authorQuery, ignoreCase = true)
+            val matchesYearFrom = yearFrom == null || book.year >= yearFrom
+            val matchesYearTo = yearTo == null || book.year <= yearTo
+            val matchesRead = read == null || book.read == read
+
+            matchesTitle && matchesAuthor && matchesYearFrom && matchesYearTo && matchesRead
+        }
+    }
 }
