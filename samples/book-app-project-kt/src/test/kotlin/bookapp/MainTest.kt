@@ -237,4 +237,28 @@ class MainTest {
         assertTrue(output.contains("Book removed if it existed."))
         assertEquals(1, collection.allBooks.size)
     }
+
+    // --- handleFind ---
+
+    @Test
+    fun `handleFind with matching author shows books`() {
+        collection.addBook("Dune", "Frank Herbert", 1965)
+        collection.addBook("Dune Messiah", "Frank Herbert", 1969)
+        collection.addBook("1984", "George Orwell", 1949)
+
+        val output = withInput("Frank Herbert\n") { handleFind(collection) }
+
+        assertTrue(output.contains("Dune"))
+        assertTrue(output.contains("Dune Messiah"))
+        assertFalse(output.contains("1984"))
+    }
+
+    @Test
+    fun `handleFind with unknown author prints no books found`() {
+        collection.addBook("Dune", "Frank Herbert", 1965)
+
+        val output = withInput("Unknown Author\n") { handleFind(collection) }
+
+        assertTrue(output.contains("No books found."))
+    }
 }
