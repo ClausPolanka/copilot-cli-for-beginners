@@ -261,4 +261,23 @@ class MainTest {
 
         assertTrue(output.contains("No books found."))
     }
+
+    // --- handleRead ---
+
+    @Test
+    fun `handleRead with existing book marks it as read`() {
+        collection.addBook("Dune", "Frank Herbert", 1965)
+
+        val output = withInput("Dune\n") { handleRead(collection) }
+
+        assertTrue(output.contains("Book marked as read."))
+        assertTrue(collection.findBookByTitle("Dune")!!.read)
+    }
+
+    @Test
+    fun `handleRead with non-existing book prints book not found`() {
+        val output = withInput("NonExistent\n") { handleRead(collection) }
+
+        assertTrue(output.contains("Book not found."))
+    }
 }
