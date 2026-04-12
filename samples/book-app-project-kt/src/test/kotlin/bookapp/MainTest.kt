@@ -2,6 +2,7 @@ package bookapp
 
 import bookapp.models.SearchCriteria
 import bookapp.services.BookCollection
+import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.PrintStream
@@ -102,6 +103,17 @@ class MainTest {
         return baos.toString()
     }
 
+    private fun withInput(input: String, block: () -> Unit): String {
+        val inStream = ByteArrayInputStream(input.toByteArray())
+        val originalIn = System.`in`
+        System.setIn(inStream)
+        return try {
+            captureOutput(block)
+        } finally {
+            System.setIn(originalIn)
+        }
+    }
+
     @Test
     fun `handleList with empty collection prints no books found`() {
         val output = captureOutput { handleList(collection, arrayOf("list")) }
@@ -164,6 +176,145 @@ class MainTest {
         collection.addBook("Dune", "Frank Herbert", 1965)
 
         val output = captureOutput { handleList(collection, arrayOf("list", "--text", "XYZ")) }
+
+        assertTrue(output.contains("No books found."))
+    }
+
+    // --- handleAdd ---
+
+    @Test
+    fun `handleAdd with valid input adds book and confirms success`() {
+        val output = withInput("The Hobbit\nJ.R.R. Tolkien\n1937\n") {
+            handleAdd(collection)
+        }
+
+        assertTrue(output.contains("Book added successfully."))
+        val book = collection.findBookByTitle("The Hobbit")
+        assertNotNull(book)
+        assertEquals("J.R.R. Tolkien", book.author)
+        assertEquals(1937, book.year)
+    }
+
+    @Test
+    fun `handleAdd with invalid year prints error message`() {
+        val output = withInput("1984\nGeorge Orwell\nnotAYear\n") {
+            handleAdd(collection)
+        }
+
+        assertTrue(output.contains("Error: 'notAYear' is not a valid year."))
+        assertNull(collection.findBookByTitle("1984"))
+    }
+
+    @Test
+    fun `handleAdd with empty title adds book with empty title`() {
+        val output = withInput("\nSome Author\n2000\n") {
+            handleAdd(collection)
+        }
+
+        assertTrue(output.contains("Book added successfully."))
+        assertEquals(1, collection.allBooks.size)
+        assertEquals("", collection.allBooks[0].title)
+    }
+
+    // --- handleRemove ---
+
+    @Test
+    fun `handleRemove with existing book removes it`() {
+        collection.addBook("Dune", "Frank Herbert", 1965)
+
+        val output = withInput("Dune\n") { handleRemove(collection) }
+
+        assertTrue(output.contains("Book removed if it existed."))
+        assertNull(collection.findBookByTitle("Dune"))
+    }
+
+    @Test
+    fun `handleRemove with non-existing book leaves collection unchanged`() {
+        collection.addBook("Dune", "Frank Herbert", 1965)
+
+        val output = withInput("NonExistent\n") { handleRemove(collection) }
+
+        assertTrue(output.contains("Book removed if it existed."))
+        assertEquals(1, collection.allBooks.size)
+    }
+
+    // --- handleFind ---
+
+    @Test
+    fun `handleFind with matching author shows books`() {
+        collection.addBook("Dune", "Frank Herbert", 1965)
+        collection.addBook("Dune Messiah", "Frank Herbert", 1969)
+        collection.addBook("1984", "George Orwell", 1949)
+
+        val output = withInput("Frank Herbert\n") { handleFind(collection) }
+
+        assertTrue(output.contains("Dune"))
+        assertTrue(output.contains("Dune Messiah"))
+        assertFalse(output.contains("1984"))
+    }
+
+    @Test
+    fun `handleFind with unknown author prints no books found`() {
+        collection.addBook("Dune", "Frank Herbert", 1965)
+
+        val output = withInput("Unknown Author\n") { handleFind(collection) }
+
+        assertTrue(output.contains("No books found."))
+    }
+
+    // --- handleRead ---
+
+    @Test
+    fun `handleRead with existing book marks it as read`() {
+        collection.addBook("Dune", "Frank Herbert", 1965)
+
+        val output = withInput("Dune\n") { handleRead(collection) }
+
+        assertTrue(output.contains("Book marked as read."))
+        assertTrue(collection.findBookByTitle("Dune")!!.read)
+    }
+
+    @Test
+    fun `handleRead with non-existing book prints book not found`() {
+        val output = withInput("NonExistent\n") { handleRead(collection) }
+
+        assertTrue(output.contains("Book not found."))
+    }
+
+    // --- handleSearch ---
+
+    @Test
+    fun `handleSearch with title filter shows matching books`() {
+        collection.addBook("Dune", "Frank Herbert", 1965)
+        collection.addBook("Dune Messiah", "Frank Herbert", 1969)
+        collection.addBook("1984", "George Orwell", 1949)
+
+        // input: title=Dune, author=, yearFrom=, yearTo=, readStatus=
+        val output = withInput("Dune\n\n\n\n\n") { handleSearch(collection) }
+
+        assertTrue(output.contains("Dune"))
+        assertTrue(output.contains("Dune Messiah"))
+        assertFalse(output.contains("1984"))
+    }
+
+    @Test
+    fun `handleSearch with all empty inputs shows all books`() {
+        collection.addBook("Dune", "Frank Herbert", 1965)
+        collection.addBook("1984", "George Orwell", 1949)
+
+        // input: all fields empty
+        val output = withInput("\n\n\n\n\n") { handleSearch(collection) }
+
+        assertTrue(output.contains("Dune"))
+        assertTrue(output.contains("1984"))
+    }
+
+    @Test
+    fun `handleSearch with no matching results prints no books found`() {
+        collection.addBook("Dune", "Frank Herbert", 1965)
+
+        // input: title=NonExistent, rest empty
+        val output = withInput("NonExistent\n\n\n\n\n") { handleSearch(collection) }
 
         assertTrue(output.contains("No books found."))
     }
