@@ -33,7 +33,7 @@ class BookCollection(dataFile: String? = null) {
             books = gson.fromJson(json, type) ?: mutableListOf()
         } catch (_: FileNotFoundException) {
             books = mutableListOf()
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             println("Warning: data.json is corrupted. Starting with empty collection.")
             books = mutableListOf()
         }
@@ -50,8 +50,6 @@ class BookCollection(dataFile: String? = null) {
         saveBooks()
         return book
     }
-
-    fun listBooks(): List<Book> = books
 
     fun findBookByTitle(title: String): Book? {
         return books.find { it.title.equals(title, ignoreCase = true) }
