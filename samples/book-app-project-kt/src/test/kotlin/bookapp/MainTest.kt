@@ -215,4 +215,26 @@ class MainTest {
         assertEquals(1, collection.allBooks.size)
         assertEquals("", collection.allBooks[0].title)
     }
+
+    // --- handleRemove ---
+
+    @Test
+    fun `handleRemove with existing book removes it`() {
+        collection.addBook("Dune", "Frank Herbert", 1965)
+
+        val output = withInput("Dune\n") { handleRemove(collection) }
+
+        assertTrue(output.contains("Book removed if it existed."))
+        assertNull(collection.findBookByTitle("Dune"))
+    }
+
+    @Test
+    fun `handleRemove with non-existing book leaves collection unchanged`() {
+        collection.addBook("Dune", "Frank Herbert", 1965)
+
+        val output = withInput("NonExistent\n") { handleRemove(collection) }
+
+        assertTrue(output.contains("Book removed if it existed."))
+        assertEquals(1, collection.allBooks.size)
+    }
 }
