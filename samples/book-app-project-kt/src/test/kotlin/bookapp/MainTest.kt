@@ -2,6 +2,7 @@ package bookapp
 
 import bookapp.models.SearchCriteria
 import bookapp.services.BookCollection
+import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.PrintStream
@@ -102,6 +103,17 @@ class MainTest {
         return baos.toString()
     }
 
+    private fun withInput(input: String, block: () -> Unit): String {
+        val inStream = ByteArrayInputStream(input.toByteArray())
+        val originalIn = System.`in`
+        System.setIn(inStream)
+        return try {
+            captureOutput(block)
+        } finally {
+            System.setIn(originalIn)
+        }
+    }
+
     @Test
     fun `handleList with empty collection prints no books found`() {
         val output = captureOutput { handleList(collection, arrayOf("list")) }
@@ -166,5 +178,41 @@ class MainTest {
         val output = captureOutput { handleList(collection, arrayOf("list", "--text", "XYZ")) }
 
         assertTrue(output.contains("No books found."))
+    }
+
+    // --- handleAdd ---
+
+    @Test
+    fun `handleAdd with valid input adds book and confirms success`() {
+        val output = withInput("The Hobbit\nJ.R.R. Tolkien\n1937\n") {
+            handleAdd(collection)
+        }
+
+        assertTrue(output.contains("Book added successfully."))
+        val book = collection.findBookByTitle("The Hobbit")
+        assertNotNull(book)
+        assertEquals("J.R.R. Tolkien", book.author)
+        assertEquals(1937, book.year)
+    }
+
+    @Test
+    fun `handleAdd with invalid year prints error message`() {
+        val output = withInput("1984\nGeorge Orwell\nnotAYear\n") {
+            handleAdd(collection)
+        }
+
+        assertTrue(output.contains("Error: 'notAYear' is not a valid year."))
+        assertNull(collection.findBookByTitle("1984"))
+    }
+
+    @Test
+    fun `handleAdd with empty title adds book with empty title`() {
+        val output = withInput("\nSome Author\n2000\n") {
+            handleAdd(collection)
+        }
+
+        assertTrue(output.contains("Book added successfully."))
+        assertEquals(1, collection.allBooks.size)
+        assertEquals("", collection.allBooks[0].title)
     }
 }
