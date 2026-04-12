@@ -280,4 +280,42 @@ class MainTest {
 
         assertTrue(output.contains("Book not found."))
     }
+
+    // --- handleSearch ---
+
+    @Test
+    fun `handleSearch with title filter shows matching books`() {
+        collection.addBook("Dune", "Frank Herbert", 1965)
+        collection.addBook("Dune Messiah", "Frank Herbert", 1969)
+        collection.addBook("1984", "George Orwell", 1949)
+
+        // input: title=Dune, author=, yearFrom=, yearTo=, readStatus=
+        val output = withInput("Dune\n\n\n\n\n") { handleSearch(collection) }
+
+        assertTrue(output.contains("Dune"))
+        assertTrue(output.contains("Dune Messiah"))
+        assertFalse(output.contains("1984"))
+    }
+
+    @Test
+    fun `handleSearch with all empty inputs shows all books`() {
+        collection.addBook("Dune", "Frank Herbert", 1965)
+        collection.addBook("1984", "George Orwell", 1949)
+
+        // input: all fields empty
+        val output = withInput("\n\n\n\n\n") { handleSearch(collection) }
+
+        assertTrue(output.contains("Dune"))
+        assertTrue(output.contains("1984"))
+    }
+
+    @Test
+    fun `handleSearch with no matching results prints no books found`() {
+        collection.addBook("Dune", "Frank Herbert", 1965)
+
+        // input: title=NonExistent, rest empty
+        val output = withInput("NonExistent\n\n\n\n\n") { handleSearch(collection) }
+
+        assertTrue(output.contains("No books found."))
+    }
 }
