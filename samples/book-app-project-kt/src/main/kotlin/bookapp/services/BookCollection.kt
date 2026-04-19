@@ -8,6 +8,8 @@ import com.google.gson.GsonBuilder
 import com.google.gson.reflect.TypeToken
 import java.io.File
 import java.io.FileNotFoundException
+import java.nio.file.Files
+import java.nio.file.StandardCopyOption
 
 class BookCollection(dataFile: String? = null) {
 
@@ -41,7 +43,18 @@ class BookCollection(dataFile: String? = null) {
 
     private fun saveBooks() {
         val json = gson.toJson(books)
-        File(dataFile).writeText(json)
+        val targetFile = File(dataFile)
+        val tmpFile = File(dataFile + ".tmp")
+        // Write to a temp file first, then atomically rename it to the target.
+        // This ensures data.json is never left in a partial or empty state if
+        // the process crashes or the disk fills up mid-write.
+        try {
+            tmpFile.writeText(json)
+            Files.move(tmpFile.toPath(), targetFile.toPath(), StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE)
+        } catch (e: Exception) {
+            tmpFile.delete() // Remove partial temp file to avoid a corrupt rename on the next write
+            throw e
+        }
     }
 
     fun addBook(title: String, author: String, year: Int): Book {

@@ -3,6 +3,7 @@ package bookapp
 import bookapp.models.SearchCriteria
 import bookapp.services.BookCollection
 import java.io.File
+import java.io.IOException
 import kotlin.test.*
 
 class BookCollectionTest {
@@ -348,6 +349,28 @@ class BookCollectionTest {
         val results = collection.search()
 
         assertEquals(3, results.size)
+    }
+
+    @Test
+    fun `addBook should throw IOException and not corrupt data file when temp write is blocked`() {
+        collection.addBook("Dune", "Frank Herbert", 1965)
+        val originalContent = tempFile.readText()
+
+        // Prove that saveBooks() uses a .tmp file (atomic write pattern):
+        // Place a directory at the exact path the code would use for the temp file.
+        // The code must try to write data.json.tmp → creating a file where a dir exists
+        // throws IOException → original data.json is never touched → content preserved.
+        val tmpPath = File(tempFile.absolutePath + ".tmp")
+        tmpPath.mkdir()
+
+        try {
+            assertFailsWith<IOException> {
+                collection.addBook("1984", "George Orwell", 1949)
+            }
+            assertEquals(originalContent, tempFile.readText())
+        } finally {
+            tmpPath.delete()
+        }
     }
 }
 
