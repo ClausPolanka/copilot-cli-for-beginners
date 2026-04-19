@@ -71,6 +71,16 @@ class BookCollectionTest {
     }
 
     @Test
+    fun `allBooks returns a defensive copy not the live backing list`() {
+        collection.addBook("Dune", "Frank Herbert", 1965)
+        val snapshot = collection.allBooks
+        collection.addBook("1984", "George Orwell", 1949)
+
+        assertEquals(1, snapshot.size)
+        assertEquals(2, collection.allBooks.size)
+    }
+
+    @Test
     fun `getStatistics should return correct counts`() {
         collection.addBook("1984", "George Orwell", 1949)
         collection.addBook("Dune", "Frank Herbert", 1965)

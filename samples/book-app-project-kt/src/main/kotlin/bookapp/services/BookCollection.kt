@@ -38,7 +38,7 @@ class BookCollection(dataFile: String? = null) {
     }
 
     val allBooks: List<Book>
-        get() = books
+        get() = books.toList()
 
     private fun loadBooks() {
         try {

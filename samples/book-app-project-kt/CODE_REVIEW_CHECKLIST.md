@@ -20,7 +20,7 @@
 
 ## 🟠 High — Bugs / Incorrect Behavior
 
-- [ ] **`allBooks` leaks the live mutable backing list** (`BookCollection.kt:26–27`)
+- [x] **`allBooks` leaks the live mutable backing list** (`BookCollection.kt:26–27`)
   The property is typed as `List<Book>` but returns the actual `MutableList`. Any caller can cast and mutate it, bypassing validation and `saveBooks()`. Fix: `get() = books.toList()`.
 
 - [ ] **No input validation in `addBook()`** (`BookCollection.kt:47–51`)
