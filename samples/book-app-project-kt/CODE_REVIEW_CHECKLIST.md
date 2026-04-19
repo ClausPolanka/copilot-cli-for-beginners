@@ -12,7 +12,7 @@
 - [x] **`saveBooks()` has no error handling** (`BookCollection.kt:42–44`)
   `IOException` on disk-full or permission errors is unhandled. The in-memory list is already mutated at this point, leaving memory and disk silently out of sync with no error surfaced to the user.
 
-- [ ] **Classpath data file used as write target** (`BookCollection.kt:14–16`)
+- [x] **Classpath data file used as write target** (`BookCollection.kt:14–16`)
   When packaged as a JAR, `javaClass.getResource("/data.json")` resolves to a read-only path inside the JAR. `saveBooks()` will crash with `IOException`. The app needs a separate writable data path (e.g. `~/.bookapp/data.json`).
   *(Mitigated: fallback now logs a clear warning. Full path migration out of scope.)*
 

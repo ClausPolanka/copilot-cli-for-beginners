@@ -13,9 +13,20 @@ import java.nio.file.StandardCopyOption
 
 class BookCollection(dataFile: String? = null) {
 
-    private val dataFile: String = dataFile
-        ?: (javaClass.getResource("/data.json")?.toURI()?.let { File(it).absolutePath }
-            ?: "data.json")
+    private val dataFile: String = dataFile ?: defaultDataFilePath()
+
+    companion object {
+        // Resolves the directory of the running JAR so the data file is stored next to it,
+        // not inside the (read-only) JAR itself. Falls back to CWD in development/test environments.
+        internal fun defaultDataFilePath(): String {
+            val appDir = runCatching {
+                File(BookCollection::class.java.protectionDomain.codeSource.location.toURI()).let {
+                    if (it.isFile) it.parentFile else it
+                }
+            }.getOrElse { File(System.getProperty("user.dir")) }
+            return File(appDir, "bookapp_data.json").absolutePath
+        }
+    }
 
     private var books: MutableList<Book> = mutableListOf()
 
@@ -50,12 +61,17 @@ class BookCollection(dataFile: String? = null) {
         // the process crashes or the disk fills up mid-write.
         try {
             tmpFile.writeText(json)
-            Files.move(
-                tmpFile.toPath(),
-                targetFile.toPath(),
-                StandardCopyOption.REPLACE_EXISTING,
-                StandardCopyOption.ATOMIC_MOVE
-            )
+            try {
+                Files.move(
+                    tmpFile.toPath(),
+                    targetFile.toPath(),
+                    StandardCopyOption.REPLACE_EXISTING,
+                    StandardCopyOption.ATOMIC_MOVE
+                )
+            } catch (e: java.nio.file.AtomicMoveNotSupportedException) {
+                // Filesystem doesn't support atomic moves; fall back to a regular replace
+                Files.move(tmpFile.toPath(), targetFile.toPath(), StandardCopyOption.REPLACE_EXISTING)
+            }
         } catch (e: Exception) {
             tmpFile.delete() // Remove partial temp file to avoid a corrupt rename on the next write
             throw e

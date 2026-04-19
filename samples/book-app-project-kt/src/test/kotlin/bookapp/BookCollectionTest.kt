@@ -4,6 +4,9 @@ import bookapp.models.SearchCriteria
 import bookapp.services.BookCollection
 import java.io.File
 import java.io.IOException
+import java.net.URLClassLoader
+import java.util.jar.JarEntry
+import java.util.jar.JarOutputStream
 import kotlin.test.*
 
 class BookCollectionTest {
@@ -407,6 +410,75 @@ class BookCollectionTest {
             tmpPath.delete()
         }
         assertNotNull(collection.findBookByTitle("Dune"))
+    }
+
+    @Test
+    fun `BookCollection throws exception when data file resolves to path inside a JAR`() {
+        // Collect all compiled bookapp .class files from the build output
+        val classesRoot = File(
+            BookCollection::class.java.getResource("/bookapp/services/BookCollection.class")!!.toURI()
+        ).parentFile.parentFile.parentFile  // build/classes/kotlin/main
+
+        // Build a JAR that mirrors a packaged app: bookapp classes + data.json at root
+        val jarFile = File.createTempFile("test-app", ".jar")
+        JarOutputStream(jarFile.outputStream()).use { jar ->
+            classesRoot.walkTopDown()
+                .filter { it.isFile && it.extension == "class" }
+                .forEach { classFile ->
+                    val entry = classesRoot.toURI().relativize(classFile.toURI()).path
+                    jar.putNextEntry(JarEntry(entry))
+                    jar.write(classFile.readBytes())
+                    jar.closeEntry()
+                }
+            jar.putNextEntry(JarEntry("data.json"))
+            jar.write("[]".toByteArray())
+            jar.closeEntry()
+        }
+
+        try {
+            // Child-first URLClassLoader: loads bookapp.* from the JAR before checking the parent.
+            // Also overrides getResource("data.json") to return the jar: URL (not the parent's file URL),
+            // exactly like a deployed JAR at runtime.
+            val jarLoader = object : URLClassLoader(
+                arrayOf(jarFile.toURI().toURL()),
+                BookCollection::class.java.classLoader
+            ) {
+                override fun loadClass(name: String, resolve: Boolean): Class<*> {
+                    if (name.startsWith("bookapp.")) {
+                        synchronized(getClassLoadingLock(name)) {
+                            findLoadedClass(name)?.let { return it }
+                            runCatching { findClass(name) }.getOrNull()?.let {
+                                if (resolve) resolveClass(it)
+                                return it
+                            }
+                        }
+                    }
+                    return super.loadClass(name, resolve)
+                }
+
+                // getResource() normally delegates to parent first; override so data.json
+                // comes from the JAR (jar: URL) rather than the parent's build-output file URL.
+                override fun getResource(name: String): java.net.URL? =
+                    if (name == "data.json") findResource(name) ?: super.getResource(name)
+                    else super.getResource(name)
+            }
+
+            val clazz = jarLoader.loadClass("bookapp.services.BookCollection")
+            val ctor = clazz.getDeclaredConstructor(String::class.java)
+
+            // With current code: getResource("/data.json") returns a jar: URL,
+            // File(jarUri) throws IllegalArgumentException → constructor fails.
+            // After fix: defaultDataFilePath() is used instead → no classpath lookup → no exception.
+            try {
+                ctor.newInstance(null)
+            } catch (e: java.lang.reflect.InvocationTargetException) {
+                fail("BookCollection constructor threw when loaded from JAR (jar: URL used as file path): ${e.cause}")
+            }
+
+            jarLoader.close()
+        } finally {
+            jarFile.delete()
+        }
     }
 }
 
