@@ -50,7 +50,12 @@ class BookCollection(dataFile: String? = null) {
         // the process crashes or the disk fills up mid-write.
         try {
             tmpFile.writeText(json)
-            Files.move(tmpFile.toPath(), targetFile.toPath(), StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE)
+            Files.move(
+                tmpFile.toPath(),
+                targetFile.toPath(),
+                StandardCopyOption.REPLACE_EXISTING,
+                StandardCopyOption.ATOMIC_MOVE
+            )
         } catch (e: Exception) {
             tmpFile.delete() // Remove partial temp file to avoid a corrupt rename on the next write
             throw e

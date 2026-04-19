@@ -6,7 +6,7 @@
 
 ## 🔴 Critical — Data Loss / Crash Risk
 
-- [ ] **Non-atomic writes in `saveBooks()`** (`BookCollection.kt:43`)
+- [x] **Non-atomic writes in `saveBooks()`** (`BookCollection.kt:43`)
   `File.writeText()` truncates the file then writes. A crash mid-write permanently corrupts `data.json`. Fix: write to a temp file, then atomically rename (`Files.move(..., ATOMIC_MOVE)`).
 
 - [ ] **`saveBooks()` has no error handling** (`BookCollection.kt:42–44`)
