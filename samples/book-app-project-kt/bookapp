@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+# This line tells the OS to run this file as a Bash script.
+
+# Move into the folder where this script lives, no matter where you call it from.
+cd "$(dirname "$0")"
+
+# Build the app and create a runnable distribution in build/install/.
+# The -q flag keeps Gradle's output quiet (only errors are shown).
+./gradlew installDist -q
+
+# Start the app and pass along any arguments you gave to this script.
+# For example: ./bookapp list --text Dune  →  "$@" becomes "list --text Dune"
+# "exec" replaces this script process with the app, so signals (Ctrl+C) work correctly.
+exec ./build/install/book-app/bin/book-app "$@"
