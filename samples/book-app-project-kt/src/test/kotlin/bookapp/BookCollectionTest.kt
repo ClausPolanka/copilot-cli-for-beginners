@@ -41,6 +41,41 @@ class BookCollectionTest {
     }
 
     @Test
+    fun `addBook throws for blank title`() {
+        assertFailsWith<IllegalArgumentException> {
+            collection.addBook("", "Frank Herbert", 1965)
+        }
+        assertEquals(0, collection.allBooks.size)
+    }
+
+    @Test
+    fun `addBook throws for blank author`() {
+        assertFailsWith<IllegalArgumentException> {
+            collection.addBook("Dune", "  ", 1965)
+        }
+        assertEquals(0, collection.allBooks.size)
+    }
+
+    @Test
+    fun `addBook throws for year zero or negative`() {
+        assertFailsWith<IllegalArgumentException> {
+            collection.addBook("Dune", "Frank Herbert", 0)
+        }
+        assertFailsWith<IllegalArgumentException> {
+            collection.addBook("Dune", "Frank Herbert", -1)
+        }
+        assertEquals(0, collection.allBooks.size)
+    }
+
+    @Test
+    fun `addBook throws for year above 2100`() {
+        assertFailsWith<IllegalArgumentException> {
+            collection.addBook("Dune", "Frank Herbert", 2101)
+        }
+        assertEquals(0, collection.allBooks.size)
+    }
+
+    @Test
     fun `markAsRead should set read to true`() {
         collection.addBook("Dune", "Frank Herbert", 1965)
         val result = collection.markAsRead("Dune")

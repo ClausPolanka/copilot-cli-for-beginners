@@ -206,14 +206,13 @@ class MainTest {
     }
 
     @Test
-    fun `handleAdd with empty title adds book with empty title`() {
+    fun `handleAdd with empty title rejects book and prints error`() {
         val output = withInput("\nSome Author\n2000\n") {
             handleAdd(collection)
         }
 
-        assertTrue(output.contains("Book added successfully."))
-        assertEquals(1, collection.allBooks.size)
-        assertEquals("", collection.allBooks[0].title)
+        assertTrue(output.contains("Error:"))
+        assertEquals(0, collection.allBooks.size)
     }
 
     // --- handleRemove ---

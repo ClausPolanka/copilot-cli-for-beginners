@@ -80,6 +80,10 @@ class BookCollection(dataFile: String? = null) {
     }
 
     fun addBook(title: String, author: String, year: Int): Book {
+        require(title.isNotBlank()) { "Title must not be blank" }
+        require(author.isNotBlank()) { "Author must not be blank" }
+        require(year > 0) { "Year must be positive" }
+        require(year <= 2100) { "Year must not exceed 2100" }
         val book = Book(title = title, author = author, year = year)
         books.add(book)
         try {
