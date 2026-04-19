@@ -88,8 +88,12 @@ fun handleAdd(collection: BookCollection) {
 
     val year = yearStr.toIntOrNull()
     if (year != null) {
-        collection.addBook(title, author, year)
-        println("\nBook added successfully.\n")
+        try {
+            collection.addBook(title, author, year)
+            println("\nBook added successfully.\n")
+        } catch (e: Exception) {
+            println("\nError: Could not save book. ${e.message}\n")
+        }
     } else {
         println("\nError: '$yearStr' is not a valid year.\n")
     }
@@ -100,9 +104,16 @@ fun handleRemove(collection: BookCollection) {
 
     print("Enter the title of the book to remove: ")
     val title = readlnOrNull()?.trim() ?: ""
-    collection.removeBook(title)
 
-    println("\nBook removed if it existed.\n")
+    try {
+        if (collection.removeBook(title)) {
+            println("\nBook removed successfully.\n")
+        } else {
+            println("\nBook not found.\n")
+        }
+    } catch (e: Exception) {
+        println("\nError: Could not save changes. ${e.message}\n")
+    }
 }
 
 fun handleFind(collection: BookCollection) {
@@ -120,11 +131,15 @@ fun handleRead(collection: BookCollection) {
 
     print("Enter the title of the book: ")
     val title = readlnOrNull()?.trim() ?: ""
-    
-    if (collection.markAsRead(title)) {
-        println("\nBook marked as read.\n")
-    } else {
-        println("\nBook not found.\n")
+
+    try {
+        if (collection.markAsRead(title)) {
+            println("\nBook marked as read.\n")
+        } else {
+            println("\nBook not found.\n")
+        }
+    } catch (e: Exception) {
+        println("\nError: Could not save changes. ${e.message}\n")
     }
 }
 

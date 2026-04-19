@@ -224,7 +224,7 @@ class MainTest {
 
         val output = withInput("Dune\n") { handleRemove(collection) }
 
-        assertTrue(output.contains("Book removed if it existed."))
+        assertTrue(output.contains("Book removed successfully."))
         assertNull(collection.findBookByTitle("Dune"))
     }
 
@@ -234,7 +234,7 @@ class MainTest {
 
         val output = withInput("NonExistent\n") { handleRemove(collection) }
 
-        assertTrue(output.contains("Book removed if it existed."))
+        assertTrue(output.contains("Book not found."))
         assertEquals(1, collection.allBooks.size)
     }
 
@@ -317,5 +317,21 @@ class MainTest {
         val output = withInput("NonExistent\n\n\n\n\n") { handleSearch(collection) }
 
         assertTrue(output.contains("No books found."))
+    }
+
+    // --- error handling ---
+
+    @Test
+    fun `handleAdd prints error message when save fails`() {
+        // Block the .tmp path so saveBooks() throws an IOException
+        val tmpPath = File(tempFile.absolutePath + ".tmp").also { it.mkdir() }
+        try {
+            val output = withInput("Dune\nFrank Herbert\n1965\n") {
+                handleAdd(collection)
+            }
+            assertTrue(output.contains("Error"), "Expected a user-friendly error message, got: $output")
+        } finally {
+            tmpPath.delete()
+        }
     }
 }

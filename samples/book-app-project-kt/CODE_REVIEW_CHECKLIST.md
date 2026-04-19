@@ -9,7 +9,7 @@
 - [x] **Non-atomic writes in `saveBooks()`** (`BookCollection.kt:43`)
   `File.writeText()` truncates the file then writes. A crash mid-write permanently corrupts `data.json`. Fix: write to a temp file, then atomically rename (`Files.move(..., ATOMIC_MOVE)`).
 
-- [ ] **`saveBooks()` has no error handling** (`BookCollection.kt:42–44`)
+- [x] **`saveBooks()` has no error handling** (`BookCollection.kt:42–44`)
   `IOException` on disk-full or permission errors is unhandled. The in-memory list is already mutated at this point, leaving memory and disk silently out of sync with no error surfaced to the user.
 
 - [ ] **Classpath data file used as write target** (`BookCollection.kt:14–16`)

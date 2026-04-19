@@ -372,5 +372,41 @@ class BookCollectionTest {
             tmpPath.delete()
         }
     }
+
+    @Test
+    fun `addBook rolls back in-memory state when save fails`() {
+        val tmpPath = File(tempFile.absolutePath + ".tmp").also { it.mkdir() }
+        val initialSize = collection.allBooks.size
+        try {
+            assertFailsWith<IOException> { collection.addBook("Dune", "Frank Herbert", 1965) }
+        } finally {
+            tmpPath.delete()
+        }
+        assertEquals(initialSize, collection.allBooks.size)
+    }
+
+    @Test
+    fun `markAsRead rolls back in-memory state when save fails`() {
+        collection.addBook("Dune", "Frank Herbert", 1965)
+        val tmpPath = File(tempFile.absolutePath + ".tmp").also { it.mkdir() }
+        try {
+            assertFailsWith<IOException> { collection.markAsRead("Dune") }
+        } finally {
+            tmpPath.delete()
+        }
+        assertFalse(collection.findBookByTitle("Dune")!!.read)
+    }
+
+    @Test
+    fun `removeBook rolls back in-memory state when save fails`() {
+        collection.addBook("Dune", "Frank Herbert", 1965)
+        val tmpPath = File(tempFile.absolutePath + ".tmp").also { it.mkdir() }
+        try {
+            assertFailsWith<IOException> { collection.removeBook("Dune") }
+        } finally {
+            tmpPath.delete()
+        }
+        assertNotNull(collection.findBookByTitle("Dune"))
+    }
 }
 

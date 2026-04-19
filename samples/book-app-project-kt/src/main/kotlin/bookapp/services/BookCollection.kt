@@ -65,7 +65,12 @@ class BookCollection(dataFile: String? = null) {
     fun addBook(title: String, author: String, year: Int): Book {
         val book = Book(title = title, author = author, year = year)
         books.add(book)
-        saveBooks()
+        try {
+            saveBooks()
+        } catch (e: Exception) {
+            books.remove(book) // rollback: keep memory and disk in sync
+            throw e
+        }
         return book
     }
 
@@ -76,14 +81,25 @@ class BookCollection(dataFile: String? = null) {
     fun markAsRead(title: String): Boolean {
         val book = findBookByTitle(title) ?: return false
         book.read = true
-        saveBooks()
+        try {
+            saveBooks()
+        } catch (e: Exception) {
+            book.read = false // rollback
+            throw e
+        }
         return true
     }
 
     fun removeBook(title: String): Boolean {
         val book = findBookByTitle(title) ?: return false
+        val originalIndex = books.indexOf(book)
         books.remove(book)
-        saveBooks()
+        try {
+            saveBooks()
+        } catch (e: Exception) {
+            books.add(originalIndex, book) // rollback: restore at original position
+            throw e
+        }
         return true
     }
 
