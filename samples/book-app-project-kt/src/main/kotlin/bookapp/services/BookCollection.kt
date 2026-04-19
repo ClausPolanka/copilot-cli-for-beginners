@@ -16,12 +16,13 @@ class BookCollection(dataFile: String? = null) {
     private val dataFile: String = dataFile ?: defaultDataFilePath()
 
     companion object {
-        // Resolves the directory of the running JAR so the data file is stored next to it,
-        // not inside the (read-only) JAR itself. Falls back to CWD in development/test environments.
+        // Resolves the data file location:
+        // - JAR execution: next to the JAR file
+        // - Development (gradlew run / tests): project root (user.dir)
         internal fun defaultDataFilePath(): String {
             val appDir = runCatching {
                 File(BookCollection::class.java.protectionDomain.codeSource.location.toURI()).let {
-                    if (it.isFile) it.parentFile else it
+                    if (it.isFile) it.parentFile else File(System.getProperty("user.dir"))
                 }
             }.getOrElse { File(System.getProperty("user.dir")) }
             return File(appDir, "bookapp_data.json").absolutePath

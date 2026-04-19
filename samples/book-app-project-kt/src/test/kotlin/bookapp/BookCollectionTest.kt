@@ -413,6 +413,14 @@ class BookCollectionTest {
     }
 
     @Test
+    fun `defaultDataFilePath returns bookapp_data json in user dir when running from classes directory`() {
+        // In tests, codeSource.location points to the compiled classes directory (not a JAR),
+        // so defaultDataFilePath() must fall back to user.dir — not the classes directory itself.
+        val expectedPath = File(System.getProperty("user.dir"), "bookapp_data.json").absolutePath
+        assertEquals(expectedPath, BookCollection.defaultDataFilePath())
+    }
+
+    @Test
     fun `BookCollection throws exception when data file resolves to path inside a JAR`() {
         // Collect all compiled bookapp .class files from the build output
         val classesRoot = File(
