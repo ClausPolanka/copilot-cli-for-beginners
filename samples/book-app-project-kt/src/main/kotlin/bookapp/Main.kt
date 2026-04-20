@@ -80,6 +80,11 @@ fun handleAdd(collection: BookCollection) {
     print("Title: ")
     val title = readlnOrNull()?.trim() ?: ""
 
+    if (title.isBlank()) {
+        println("\nError: Title cannot be empty.\n")
+        return
+    }
+
     print("Author: ")
     val author = readlnOrNull()?.trim() ?: ""
 

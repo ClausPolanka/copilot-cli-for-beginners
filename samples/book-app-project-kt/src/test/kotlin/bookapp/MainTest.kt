@@ -211,7 +211,7 @@ class MainTest {
             handleAdd(collection)
         }
 
-        assertTrue(output.contains("Error:"))
+        assertTrue(output.contains("Error: Title cannot be empty."))
         assertEquals(0, collection.allBooks.size)
     }
 

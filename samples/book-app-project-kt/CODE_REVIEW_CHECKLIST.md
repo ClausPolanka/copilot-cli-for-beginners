@@ -26,7 +26,7 @@
 - [x] **No input validation in `addBook()`** (`BookCollection.kt:47–51`)
   Blank titles, blank authors, `year = 0`, negative years, and far-future years are silently persisted.
 
-- [ ] **Empty title accepted and confirmed as success** (`Main.kt:81`, `MainTest.kt:209`)
+- [x] **Empty title accepted and confirmed as success** (`Main.kt:81`, `MainTest.kt:209`)
   `handleAdd` trims input but doesn't guard against blank strings. The test even encodes this as expected behaviour.
 
 - [ ] **`handleRemove` ignores `removeBook()`'s return value** (`Main.kt:103–105`)
@@ -89,7 +89,7 @@
 - [ ] **`MainTest` stream-redirection helpers are not thread-safe** (`MainTest.kt:94–115`)
   `System.setOut`/`System.setIn` mutate global JVM state. Parallel test execution (JUnit 5 default) can cause tests to interfere with each other's captured output/input.
 
-- [ ] **`MainTest` encodes a bug as expected behaviour** (`MainTest.kt:209–217`)
+- [x] **`MainTest` encodes a bug as expected behaviour** (`MainTest.kt:209–217`)
   The `handleAdd with empty title` test asserts success, cementing the missing validation as intentional.
 
 - [ ] **No dedicated `findByAuthor` unit tests** (`BookCollectionTest.kt`)
