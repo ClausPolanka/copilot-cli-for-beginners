@@ -76,6 +76,33 @@ class BookCollectionTest {
     }
 
     @Test
+    fun `addBook throws when title already exists`() {
+        collection.addBook("Dune", "Frank Herbert", 1965)
+        assertFailsWith<IllegalArgumentException> {
+            collection.addBook("Dune", "Brian Herbert", 2000)
+        }
+        assertEquals(1, collection.allBooks.size)
+    }
+
+    @Test
+    fun `addBook throws for case-insensitive duplicate title`() {
+        collection.addBook("Dune", "Frank Herbert", 1965)
+        assertFailsWith<IllegalArgumentException> {
+            collection.addBook("dune", "Brian Herbert", 2000)
+        }
+        assertEquals(1, collection.allBooks.size)
+    }
+
+    @Test
+    fun `addBook throws for whitespace-padded duplicate title`() {
+        collection.addBook("Dune", "Frank Herbert", 1965)
+        assertFailsWith<IllegalArgumentException> {
+            collection.addBook("  Dune  ", "Brian Herbert", 2000)
+        }
+        assertEquals(1, collection.allBooks.size)
+    }
+
+    @Test
     fun `markAsRead should set read to true`() {
         collection.addBook("Dune", "Frank Herbert", 1965)
         val result = collection.markAsRead("Dune")

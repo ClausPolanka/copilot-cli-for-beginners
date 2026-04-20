@@ -215,6 +215,18 @@ class MainTest {
         assertEquals(0, collection.allBooks.size)
     }
 
+    @Test
+    fun `handleAdd with duplicate title prints error and does not add book`() {
+        collection.addBook("Dune", "Frank Herbert", 1965)
+
+        val output = withInput("Dune\nBrian Herbert\n2000\n") {
+            handleAdd(collection)
+        }
+
+        assertTrue(output.contains("Error:"))
+        assertEquals(1, collection.allBooks.size)
+    }
+
     // --- handleRemove ---
 
     @Test

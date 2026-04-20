@@ -29,10 +29,10 @@
 - [x] **Empty title accepted and confirmed as success** (`Main.kt:81`, `MainTest.kt:209`)
   `handleAdd` trims input but doesn't guard against blank strings. The test even encodes this as expected behaviour.
 
-- [ ] **`handleRemove` ignores `removeBook()`'s return value** (`Main.kt:103–105`)
+- [x] **`handleRemove` ignores `removeBook()`'s return value** (`Main.kt:103–105`)
   Always prints `"Book removed if it existed."` — user gets no feedback when a title isn't found.
 
-- [ ] **Duplicate books can be silently added** (`BookCollection.kt:47–51`)
+- [x] **Duplicate books can be silently added** (`BookCollection.kt:47–51`)
   No duplicate check in `addBook()`. Calling it twice with the same title adds two identical entries.
 
 - [ ] **`findByAuthor` uses exact match while `search(authorQuery)` uses substring match** (`BookCollection.kt:72`, `BookCollection.kt:112`)
